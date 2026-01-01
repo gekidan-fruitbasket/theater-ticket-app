@@ -23,8 +23,7 @@ export interface Reservation {
 }
 
 export interface SeatMapProps {
+    performanceId: string;
     layoutData: LayoutData;
     reservations: Reservation[];
-    selectedSeats: string[];
-    onSeatClick: (seatId: string) => void;
 }

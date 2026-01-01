@@ -1,35 +1,58 @@
 'use client';
 
+import { useState, useTransition } from 'react';
 import { SeatMapProps } from './types';
+import { reserveSeat } from '@/app/actions';
 
 export function SeatMap({
+    performanceId,
     layoutData,
     reservations,
-    selectedSeats,
-    onSeatClick
 }: SeatMapProps) {
+    const [isPending, startTransition] = useTransition();
+    const [loadingSeatId, setLoadingSeatId] = useState<string | null>(null);
+
     // Create a set of reserved seat IDs for O(1) lookup
     const reservedSeatIds = new Set(reservations.map((r) => r.seat_id));
 
-    const getSeatStatus = (seatId: string | null): 'available' | 'reserved' | 'selected' => {
+    const getSeatStatus = (seatId: string | null): 'available' | 'reserved' | 'loading' => {
         if (!seatId) return 'available';
         if (reservedSeatIds.has(seatId)) return 'reserved';
-        if (selectedSeats.includes(seatId)) return 'selected';
+        if (loadingSeatId === seatId) return 'loading';
         return 'available';
     };
 
-    const getSeatStyles = (status: 'available' | 'reserved' | 'selected'): string => {
+    const getSeatStyles = (status: 'available' | 'reserved' | 'loading'): string => {
         const baseStyles = 'w-8 h-8 rounded-md text-xs font-medium transition-all duration-200 flex items-center justify-center';
 
         switch (status) {
             case 'reserved':
                 return `${baseStyles} bg-gray-300 text-gray-500 cursor-not-allowed`;
-            case 'selected':
-                return `${baseStyles} bg-emerald-500 text-white shadow-lg scale-105 cursor-pointer hover:bg-emerald-600`;
+            case 'loading':
+                return `${baseStyles} bg-amber-400 text-white animate-pulse cursor-wait`;
             case 'available':
             default:
                 return `${baseStyles} bg-blue-100 text-blue-700 cursor-pointer hover:bg-blue-200 hover:scale-105`;
         }
+    };
+
+    const handleSeatClick = async (seatId: string) => {
+        const confirmed = window.confirm(`座席 ${seatId} を予約しますか？`);
+        if (!confirmed) return;
+
+        setLoadingSeatId(seatId);
+
+        startTransition(async () => {
+            const result = await reserveSeat(performanceId, seatId);
+            setLoadingSeatId(null);
+
+            if (result.success) {
+                // Page will be revalidated automatically
+                alert(result.message);
+            } else {
+                alert(result.message);
+            }
+        });
     };
 
     return (
@@ -40,6 +63,13 @@ export function SeatMap({
                     ステージ
                 </div>
             </div>
+
+            {/* Loading overlay */}
+            {isPending && (
+                <div className="text-center text-sm text-amber-600 mb-4">
+                    予約処理中...
+                </div>
+            )}
 
             {/* Seat grid */}
             <div className="flex flex-col gap-2 items-center">
@@ -69,13 +99,17 @@ export function SeatMap({
                                     <button
                                         key={seat.id}
                                         className={getSeatStyles(status)}
-                                        disabled={status === 'reserved'}
-                                        onClick={() => seat.id && onSeatClick(seat.id)}
+                                        disabled={status === 'reserved' || status === 'loading' || isPending}
+                                        onClick={() => seat.id && handleSeatClick(seat.id)}
                                         aria-label={`座席 ${seat.id} - ${status === 'reserved' ? '予約済み' :
-                                                status === 'selected' ? '選択中' : '空席'
+                                                status === 'loading' ? '処理中' : '空席'
                                             }`}
                                     >
-                                        {seatNumber}
+                                        {status === 'loading' ? (
+                                            <span className="animate-spin">⏳</span>
+                                        ) : (
+                                            seatNumber
+                                        )}
                                     </button>
                                 );
                             })}
@@ -94,10 +128,6 @@ export function SeatMap({
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded bg-blue-100 border border-blue-200"></div>
                     <span className="text-gray-600">空席</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-emerald-500"></div>
-                    <span className="text-gray-600">選択中</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded bg-gray-300"></div>
