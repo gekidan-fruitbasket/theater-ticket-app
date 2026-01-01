@@ -20,7 +20,9 @@ type ReservationWithProfile = {
     created_at: string;
     profiles: {
         display_name: string;
-    } | null; // Join result might be null if referential integrity is broken, though unlikely
+        real_name: string | null;
+        member_name: string | null;
+    } | null;
 };
 
 interface AdminDashboardProps {
@@ -34,7 +36,7 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
 
     const handleSort = (order: 'seat' | 'date') => {
         setSortOrder(order);
-        router.refresh(); // In a real app we might sort client-side, but let's just update state for render
+        router.refresh();
     };
 
     const sortedReservations = [...reservations].sort((a, b) => {
@@ -46,11 +48,12 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
     });
 
     const handleDownloadCSV = () => {
-        const header = '座席番号,予約者名,予約日時';
+        const header = '座席番号,お名前,劇団員名,予約日時';
         const rows = sortedReservations.map(r => {
             const date = new Date(r.created_at).toLocaleString('ja-JP');
-            const name = r.profiles?.display_name || '不明';
-            return `${r.seat_id},${name},${date}`;
+            const name = r.profiles?.real_name || r.profiles?.display_name || '不明';
+            const member = r.profiles?.member_name || '不明';
+            return `${r.seat_id},${name},${member},${date}`;
         });
 
         // Add BOM for Excel compatibility
@@ -74,8 +77,6 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
         const result = await deleteReservation(id);
         if (result.success) {
             alert(result.message);
-            // In a more complex app, we'd update local state, but router.refresh handles re-fetching
-            // deleteReservation calls revalidatePath
         } else {
             alert(result.message);
         }
@@ -129,7 +130,8 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[100px]">座席</TableHead>
-                                <TableHead>予約者名</TableHead>
+                                <TableHead>お名前（利用者）</TableHead>
+                                <TableHead>劇団員名</TableHead>
                                 <TableHead>予約日時</TableHead>
                                 <TableHead className="text-right">操作</TableHead>
                             </TableRow>
@@ -137,7 +139,7 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
                         <TableBody>
                             {sortedReservations.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                                         予約はまだありません
                                     </TableCell>
                                 </TableRow>
@@ -145,7 +147,19 @@ export default function AdminDashboard({ reservations: initialReservations }: Ad
                                 sortedReservations.map((r) => (
                                     <TableRow key={r.id}>
                                         <TableCell className="font-medium">{r.seat_id}</TableCell>
-                                        <TableCell>{r.profiles?.display_name || '不明'}</TableCell>
+                                        <TableCell>
+                                            {r.profiles?.real_name ? (
+                                                r.profiles.real_name
+                                            ) : (
+                                                <>
+                                                    <span className="text-gray-400 text-xs text-muted-foreground mr-1">
+                                                        (未登録)
+                                                    </span>
+                                                    {r.profiles?.display_name}
+                                                </>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>{r.profiles?.member_name || '-'}</TableCell>
                                         <TableCell>{new Date(r.created_at).toLocaleString('ja-JP')}</TableCell>
                                         <TableCell className="text-right">
                                             <Button

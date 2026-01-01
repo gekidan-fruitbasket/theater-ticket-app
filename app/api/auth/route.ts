@@ -53,7 +53,7 @@ export async function POST(request: Request) {
                 },
                 { onConflict: 'line_user_id' }
             )
-            .select('id, line_user_id, display_name, role')
+            .select('id, line_user_id, display_name, role, real_name, member_name')
             .single();
 
         if (dbError) {

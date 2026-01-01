@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { SeatMap } from '@/app/components/SeatMap/SeatMap';
 import { LayoutData, Reservation } from '@/app/components/SeatMap/types';
@@ -22,6 +24,13 @@ export function ReservationPageClient({
     reservations
 }: ReservationPageClientProps) {
     const { user, loading, error } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && user && (!user.real_name || !user.member_name)) {
+            router.push('/register');
+        }
+    }, [user, loading, router]);
 
     if (loading) {
         return (

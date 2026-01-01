@@ -9,6 +9,9 @@ export interface User {
     line_user_id: string;
     display_name: string;
     role: 'user' | 'admin';
+    real_name?: string;
+    phone_number?: string;
+    member_name?: string;
 }
 
 interface AuthContextType {
