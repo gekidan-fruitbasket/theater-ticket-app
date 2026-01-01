@@ -67,3 +67,87 @@ export async function reserveSeat(
         };
     }
 }
+
+
+export async function deleteReservation(reservationId: string): Promise<{ success: boolean; message: string }> {
+    try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get('session_user_id')?.value;
+
+        if (!userId) {
+            return { success: false, message: '認証されていません' };
+        }
+
+        // Check admin role
+        const { data: user, error: userError } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user || user.role !== 'admin') {
+            return { success: false, message: '権限がありません' };
+        }
+
+        // Delete reservation
+        const { error } = await supabaseAdmin
+            .from('reservations')
+            .delete()
+            .eq('id', reservationId);
+
+        if (error) {
+            console.error('Delete error:', error);
+            return { success: false, message: '削除に失敗しました' };
+        }
+
+        revalidatePath('/admin');
+        revalidatePath('/'); // Update seat map as well
+        return { success: true, message: '予約を削除しました' };
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return { success: false, message: 'エラーが発生しました' };
+    }
+}
+// ... (existing codes)
+
+export async function getReservationsForAdmin() {
+    try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get('session_user_id')?.value;
+
+        if (!userId) throw new Error('Unauthorized');
+
+        // Check admin role
+        const { data: user, error: userError } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
+
+        if (userError || !user || user.role !== 'admin') {
+            throw new Error('Forbidden');
+        }
+
+        const { data: reservations, error: ResError } = await supabaseAdmin
+            .from('reservations')
+            .select(`
+                id,
+                seat_id,
+                created_at,
+                profiles (
+                    display_name
+                )
+            `)
+            .order('seat_id', { ascending: true });
+
+        if (ResError) throw ResError;
+
+        return (reservations || []).map((r: any) => ({
+            ...r,
+            profiles: Array.isArray(r.profiles) ? r.profiles[0] : r.profiles
+        }));
+    } catch (error) {
+        console.error('Admin Fetch Error:', error);
+        return [];
+    }
+}

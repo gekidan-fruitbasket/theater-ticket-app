@@ -89,8 +89,8 @@ export function SeatMap({
 
             {/* Seat grid */}
             <div className="flex flex-col gap-2 items-center">
-                {layoutData.rows.map((row) => (
-                    <div key={row.label} className="flex items-center gap-1">
+                {layoutData.rows.map((row, index) => (
+                    <div key={`${row.label}-${index}`} className="flex items-center gap-1">
                         {/* Row label */}
                         <div className="w-6 text-center text-sm font-semibold text-gray-600">
                             {row.label}
@@ -118,8 +118,8 @@ export function SeatMap({
                                         disabled={status === 'reserved' || status === 'loading' || isPending}
                                         onClick={() => seat.id && handleSeatClick(seat.id, status)}
                                         aria-label={`座席 ${seat.id} - ${status === 'reserved_by_me' ? 'あなたの予約席' :
-                                                status === 'reserved' ? '他のお客様の予約席' :
-                                                    status === 'loading' ? '処理中' : '空席'
+                                            status === 'reserved' ? '他のお客様の予約席' :
+                                                status === 'loading' ? '処理中' : '空席'
                                             }`}
                                     >
                                         {status === 'loading' ? (

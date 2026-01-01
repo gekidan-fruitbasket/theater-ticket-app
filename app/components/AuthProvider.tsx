@@ -8,6 +8,7 @@ export interface User {
     id: string;
     line_user_id: string;
     display_name: string;
+    role: 'user' | 'admin';
 }
 
 interface AuthContextType {
