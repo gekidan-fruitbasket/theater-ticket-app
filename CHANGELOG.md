@@ -1,22 +1,22 @@
-# Changelog
+# 更新履歴
 
-All notable changes to this project will be documented in this file.
+このプロジェクトの変更履歴をここに記録します。
 
 ## [0.1.0] - 2026-01-02
 
-### Added
-- **Core Features**
-    - Initial project setup with Next.js 14, Supabase, and Tailwind CSS.
-    - LINE Login integration for seamless user authentication.
-    - Interactive visual seat map for checking availability and reserving seats.
-    - User profile registration flow (required fields: Real Name, Member Name).
+### 追加
+- **主要機能**
+    - Next.js 14, Supabase, Tailwind CSS による基本環境の構築。
+    - LINEログイン連携（シームレスな認証）。
+    - ビジュアル座席表（空席確認・予約機能）。
+    - ユーザープロフィール登録フロー（必須項目：本名、劇団員名）。
 
-- **Admin Features**
-    - Admin dashboard accessible at `/admin`.
-    - Real-time reservation list view.
-    - CSV export functionality for attendee management.
-    - Ability to cancel/delete reservations.
+- **管理者機能**
+    - 管理者ダッシュボードの構築（`/admin`）。
+    - リアルタイム予約リスト表示。
+    - 受付名簿用CSVエクスポート機能。
+    - 管理者による予約キャンセル・削除機能。
 
-- **Infrastructure & Documentation**
-    - Vercel deployment configuration.
-    - Project documentation (README.md).
+- **インフラ・ドキュメント**
+    - Vercelへのデプロイ設定。
+    - アプリ仕様書（README.md）の作成。
