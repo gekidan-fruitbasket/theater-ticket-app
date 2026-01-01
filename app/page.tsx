@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { ReservationPageClient } from './components/ReservationPageClient';
-import { LayoutData, Reservation } from './components/SeatMap';
+import { LayoutData, Reservation } from './components/SeatMap/types';
 
 interface Performance {
   id: string;
@@ -11,7 +11,11 @@ interface Performance {
     id: string;
     name: string;
     layout_data: LayoutData;
-  };
+  } | {
+    id: string;
+    name: string;
+    layout_data: LayoutData;
+  }[];
 }
 
 async function getUpcomingPerformance(): Promise<Performance | null> {
@@ -81,13 +85,15 @@ export default async function Home() {
   const reservations = await getReservations(performance.id);
 
   return (
-    <ReservationPageClient
-      performanceId={performance.id}
-      performanceTitle={performance.title}
-      startTime={performance.start_time}
-      venueName={performance.venues.name}
-      layoutData={performance.venues.layout_data}
-      reservations={reservations}
-    />
+    <div className="min-h-screen bg-slate-50 py-8">
+      <ReservationPageClient
+        performanceId={performance.id}
+        performanceTitle={performance.title}
+        startTime={performance.start_time}
+        venueName={Array.isArray(performance.venues) ? performance.venues[0].name : performance.venues.name}
+        layoutData={Array.isArray(performance.venues) ? performance.venues[0].layout_data : performance.venues.layout_data}
+        reservations={reservations}
+      />
+    </div>
   );
 }

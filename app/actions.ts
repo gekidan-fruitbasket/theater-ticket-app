@@ -3,8 +3,9 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 
-// テスト用の固定ユーザーID（認証実装後に差し替え）
-const TEST_USER_ID = 'bd5d8438-497d-4367-8b00-ad154f8ef531';
+import { cookies } from 'next/headers';
+
+
 
 interface ReserveResult {
     success: boolean;
@@ -16,11 +17,21 @@ export async function reserveSeat(
     seatId: string
 ): Promise<ReserveResult> {
     try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get('session_user_id')?.value;
+
+        if (!userId) {
+            return {
+                success: false,
+                message: 'ログインセッションが無効です。画面を更新して再ログインしてください。',
+            };
+        }
+
         const { error } = await supabaseAdmin
             .from('reservations')
             .insert({
                 performance_id: performanceId,
-                user_id: TEST_USER_ID,
+                user_id: userId,
                 seat_id: seatId,
             });
 
