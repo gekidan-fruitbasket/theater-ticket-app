@@ -72,89 +72,93 @@ export function SeatMap({
     };
 
     return (
-        <div className="w-full overflow-x-auto">
-            {/* Stage indicator */}
-            <div className="flex justify-center mb-6">
-                <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-12 py-2 rounded-t-lg text-sm font-semibold shadow-md">
-                    ステージ
-                </div>
-            </div>
-
-            {/* Loading overlay */}
-            {isPending && (
-                <div className="text-center text-sm text-amber-600 mb-4 animate-pulse">
-                    予約処理中...
-                </div>
-            )}
-
-            {/* Seat grid */}
-            <div className="flex flex-col gap-2 items-center">
-                {layoutData.rows.map((row, index) => (
-                    <div key={`${row.label}-${index}`} className="flex items-center gap-1">
-                        {/* Row label */}
-                        <div className="w-6 text-center text-sm font-semibold text-gray-600">
-                            {row.label}
-                        </div>
-
-                        {/* Seats */}
-                        <div className="flex gap-1">
-                            {row.seats.map((seat, index) => {
-                                if (seat.type === 'aisle') {
-                                    return (
-                                        <div
-                                            key={`aisle-${row.label}-${index}`}
-                                            className="w-4 h-8"
-                                        />
-                                    );
-                                }
-
-                                const status = getSeatStatus(seat.id);
-                                const seatNumber = seat.id?.split('-')[1] || '';
-
-                                return (
-                                    <button
-                                        key={seat.id}
-                                        className={getSeatStyles(status)}
-                                        disabled={status === 'reserved' || status === 'loading' || isPending}
-                                        onClick={() => seat.id && handleSeatClick(seat.id, status)}
-                                        aria-label={`座席 ${seat.id} - ${status === 'reserved_by_me' ? 'あなたの予約席' :
-                                            status === 'reserved' ? '他のお客様の予約席' :
-                                                status === 'loading' ? '処理中' : '空席'
-                                            }`}
-                                    >
-                                        {status === 'loading' ? (
-                                            <span className="animate-spin">⏳</span>
-                                        ) : status === 'reserved_by_me' ? (
-                                            '✓'
-                                        ) : (
-                                            seatNumber
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Row label (right side) */}
-                        <div className="w-6 text-center text-sm font-semibold text-gray-600">
-                            {row.label}
+        <div className="w-full overflow-x-auto pb-4">
+            <div className="inline-block min-w-full">
+                <div className="w-fit px-4">
+                    {/* Stage indicator */}
+                    <div className="flex justify-center mb-6">
+                        <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-12 py-2 rounded-t-lg text-sm font-semibold shadow-md">
+                            ステージ
                         </div>
                     </div>
-                ))}
-            </div>
 
-            {/* Legend */}
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 text-sm px-4">
-                <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-blue-100 border border-blue-200"></div>
-                    <span className="text-gray-600">空席</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-green-500 text-white flex items-center justify-center text-xs">✓</div>
-                    <span className="text-gray-600">あなたの予約</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded bg-gray-300"></div>
-                    <span className="text-gray-600">予約済み</span>
+                    {/* Loading overlay */}
+                    {isPending && (
+                        <div className="text-center text-sm text-amber-600 mb-4 animate-pulse">
+                            予約処理中...
+                        </div>
+                    )}
+
+                    {/* Seat grid */}
+                    <div className="flex flex-col gap-2">
+                        {layoutData.rows.map((row, index) => (
+                            <div key={`${row.label}-${index}`} className="flex items-center gap-1">
+                                {/* Row label */}
+                                <div className="w-6 text-center text-sm font-semibold text-gray-600">
+                                    {row.label}
+                                </div>
+
+                                {/* Seats */}
+                                <div className="flex gap-1">
+                                    {row.seats.map((seat, index) => {
+                                        if (seat.type === 'aisle') {
+                                            return (
+                                                <div
+                                                    key={`aisle-${row.label}-${index}`}
+                                                    className="w-4 h-8"
+                                                />
+                                            );
+                                        }
+
+                                        const status = getSeatStatus(seat.id);
+                                        const seatNumber = seat.id?.split('-')[1] || '';
+
+                                        return (
+                                            <button
+                                                key={seat.id}
+                                                className={getSeatStyles(status)}
+                                                disabled={status === 'reserved' || status === 'loading' || isPending}
+                                                onClick={() => seat.id && handleSeatClick(seat.id, status)}
+                                                aria-label={`座席 ${seat.id} - ${status === 'reserved_by_me' ? 'あなたの予約席' :
+                                                    status === 'reserved' ? '他のお客様の予約席' :
+                                                        status === 'loading' ? '処理中' : '空席'
+                                                    }`}
+                                            >
+                                                {status === 'loading' ? (
+                                                    <span className="animate-spin">⏳</span>
+                                                ) : status === 'reserved_by_me' ? (
+                                                    '✓'
+                                                ) : (
+                                                    seatNumber
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Row label (right side) */}
+                                <div className="w-6 text-center text-sm font-semibold text-gray-600">
+                                    {row.label}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Legend */}
+                    <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 text-sm">
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded bg-blue-100 border border-blue-200"></div>
+                            <span className="text-gray-600">空席</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded bg-green-500 text-white flex items-center justify-center text-xs">✓</div>
+                            <span className="text-gray-600">あなたの予約</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded bg-gray-300"></div>
+                            <span className="text-gray-600">予約済み</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
