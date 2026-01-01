@@ -26,4 +26,5 @@ export interface SeatMapProps {
     performanceId: string;
     layoutData: LayoutData;
     reservations: Reservation[];
+    currentUserId?: string;
 }

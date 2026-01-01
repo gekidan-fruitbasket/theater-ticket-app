@@ -8,35 +8,52 @@ export function SeatMap({
     performanceId,
     layoutData,
     reservations,
+    currentUserId,
 }: SeatMapProps) {
     const [isPending, startTransition] = useTransition();
     const [loadingSeatId, setLoadingSeatId] = useState<string | null>(null);
 
-    // Create a set of reserved seat IDs for O(1) lookup
-    const reservedSeatIds = new Set(reservations.map((r) => r.seat_id));
+    // Create a map for reservation details lookup (O(1) access)
+    // Map<seatId, Reservation>
+    const reservationMap = new Map(reservations.map((r) => [r.seat_id, r]));
 
-    const getSeatStatus = (seatId: string | null): 'available' | 'reserved' | 'loading' => {
+    const getSeatStatus = (seatId: string | null): 'available' | 'reserved' | 'reserved_by_me' | 'loading' => {
         if (!seatId) return 'available';
-        if (reservedSeatIds.has(seatId)) return 'reserved';
+
         if (loadingSeatId === seatId) return 'loading';
+
+        const reservation = reservationMap.get(seatId);
+        if (reservation) {
+            return reservation.user_id === currentUserId ? 'reserved_by_me' : 'reserved';
+        }
+
         return 'available';
     };
 
-    const getSeatStyles = (status: 'available' | 'reserved' | 'loading'): string => {
+    const getSeatStyles = (status: 'available' | 'reserved' | 'reserved_by_me' | 'loading'): string => {
         const baseStyles = 'w-8 h-8 rounded-md text-xs font-medium transition-all duration-200 flex items-center justify-center';
 
         switch (status) {
+            case 'reserved_by_me':
+                return `${baseStyles} bg-green-500 text-white cursor-pointer hover:bg-green-600 shadow-sm transform hover:scale-105`;
             case 'reserved':
-                return `${baseStyles} bg-gray-300 text-gray-500 cursor-not-allowed`;
+                return `${baseStyles} bg-gray-300 text-gray-400 cursor-not-allowed`;
             case 'loading':
                 return `${baseStyles} bg-amber-400 text-white animate-pulse cursor-wait`;
             case 'available':
             default:
-                return `${baseStyles} bg-blue-100 text-blue-700 cursor-pointer hover:bg-blue-200 hover:scale-105`;
+                return `${baseStyles} bg-blue-100 text-blue-700 cursor-pointer hover:bg-blue-200 hover:scale-105 hover:shadow-sm`;
         }
     };
 
-    const handleSeatClick = async (seatId: string) => {
+    const handleSeatClick = async (seatId: string, status: string) => {
+        if (status === 'reserved_by_me') {
+            alert(`これはあなたの予約席（${seatId}）です ✅`);
+            return;
+        }
+
+        if (status === 'reserved') return;
+
         const confirmed = window.confirm(`座席 ${seatId} を予約しますか？`);
         if (!confirmed) return;
 
@@ -48,7 +65,6 @@ export function SeatMap({
 
             if (result.success) {
                 // Page will be revalidated automatically
-                alert(result.message);
             } else {
                 alert(result.message);
             }
@@ -66,7 +82,7 @@ export function SeatMap({
 
             {/* Loading overlay */}
             {isPending && (
-                <div className="text-center text-sm text-amber-600 mb-4">
+                <div className="text-center text-sm text-amber-600 mb-4 animate-pulse">
                     予約処理中...
                 </div>
             )}
@@ -100,13 +116,16 @@ export function SeatMap({
                                         key={seat.id}
                                         className={getSeatStyles(status)}
                                         disabled={status === 'reserved' || status === 'loading' || isPending}
-                                        onClick={() => seat.id && handleSeatClick(seat.id)}
-                                        aria-label={`座席 ${seat.id} - ${status === 'reserved' ? '予約済み' :
-                                                status === 'loading' ? '処理中' : '空席'
+                                        onClick={() => seat.id && handleSeatClick(seat.id, status)}
+                                        aria-label={`座席 ${seat.id} - ${status === 'reserved_by_me' ? 'あなたの予約席' :
+                                                status === 'reserved' ? '他のお客様の予約席' :
+                                                    status === 'loading' ? '処理中' : '空席'
                                             }`}
                                     >
                                         {status === 'loading' ? (
                                             <span className="animate-spin">⏳</span>
+                                        ) : status === 'reserved_by_me' ? (
+                                            '✓'
                                         ) : (
                                             seatNumber
                                         )}
@@ -124,10 +143,14 @@ export function SeatMap({
             </div>
 
             {/* Legend */}
-            <div className="flex justify-center gap-6 mt-6 text-sm">
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 text-sm px-4">
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded bg-blue-100 border border-blue-200"></div>
                     <span className="text-gray-600">空席</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded bg-green-500 text-white flex items-center justify-center text-xs">✓</div>
+                    <span className="text-gray-600">あなたの予約</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded bg-gray-300"></div>

@@ -79,6 +79,7 @@ export function ReservationPageClient({
                     performanceId={performanceId}
                     layoutData={layoutData}
                     reservations={reservations}
+                    currentUserId={user?.id}
                 />
             </div>
         </div>
