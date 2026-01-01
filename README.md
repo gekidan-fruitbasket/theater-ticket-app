@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 劇団フルーツバスケット チケット予約アプリ
 
-## Getting Started
+劇団の公演チケットを、保護者や関係者がLINEから簡単に予約できるWebアプリケーションです。
+LINEログインを利用し、誰でも直感的に座席を選択・予約できます。
 
-First, run the development server:
+## 主な機能
+
+### ユーザー（保護者・劇団員）向け機能
+- **LINEログイン**: 面倒なID・パスワード管理なしで、LINEアカウントでワンタップログイン。
+- **初回プロフィール登録**: ログイン後、本名・電話番号・関連する劇団員名（お子様用）を登録。
+- **座席予約**:
+  - ビジュアル座席表（空席：白 / 自分の予約：緑 / 他人の予約：グレー）。
+  - タップするだけで即時予約完了。
+  - 自分の予約席の確認（タップで座席番号表示）。
+
+### 管理者（運営スタッフ）向け機能
+- **管理者ダッシュボード**: `/admin` にアクセス（管理者権限を持つユーザーのみ）。
+- **予約状況の確認**: 誰がどの席を予約したか一覧表示。
+- **CSVエクスポート**: 「座席・本名・劇団員名・電話番号」のリストをワンクリックでダウンロード（受付名簿用）。
+- **予約の強制キャンセル**: 管理者権限による予約の削除。
+
+---
+
+## 技術スタック
+
+モダンでコストパフォーマンスに優れた技術選定を行っています。
+
+- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS
+- **Backend / Database**: Supabase (PostgreSQL, Auth)
+- **Infrastructure**: Vercel (Hosting)
+- **Integration**: LINE Login / LIFF (LINE Front-end Framework)
+- **UI Component**: shadcn/ui, Lucide React
+
+---
+
+## データベース構造
+
+### 1. `profiles` テーブル
+ユーザー情報を管理します。
+
+| カラム名 | 説明 |
+| --- | --- |
+| `id` | Supabase AuthのユーザーID (PK) |
+| `line_user_id` | LINE固有のユーザーID |
+| `display_name` | LINEの表示名 |
+| `real_name` | **本名**（保護者名など） |
+| `member_name` | **劇団員名**（誰の保護者か） |
+| `phone_number` | 連絡先電話番号 |
+| `role` | 権限 (`user` または `admin`) |
+
+### 2. `reservations` テーブル
+座席の予約状況を管理します。
+
+| カラム名 | 説明 |
+| --- | --- |
+| `id` | 予約ID |
+| `seat_id` | 座席番号 (例: A-1, B-3) |
+| `user_id` | 予約したユーザーのID |
+| `created_at` | 予約日時 |
+
+---
+
+## 開発・運用フロー
+
+### ローカルでの起動方法
 
 ```bash
+# 依存パッケージのインストール
+npm install
+
+# 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# ローカルでのLINEログイン動作確認 (ngrokが必要)
+npx ngrok http 3000
